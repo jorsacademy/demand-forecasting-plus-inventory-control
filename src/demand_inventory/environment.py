@@ -93,14 +93,15 @@ class InventoryControlEnv(gym.Env):
         forecast_mean, forecast_std = self._forecast()
         pipeline_total = float(sum(self._pipeline))
         time_fraction = self.day / max(c.horizon - 1, 1)
+        demand_scale = max(2.0 * c.base_demand, 1.0)
         return np.array(
             [
                 self.inventory / c.max_inventory,
                 min(self.backlog / c.max_inventory, 2.0),
                 min(pipeline_total / (c.max_order * max(c.lead_time, 1)), 2.0),
-                min(forecast_mean / (2.0 * c.base_demand), 2.0),
+                min(forecast_mean / demand_scale, 2.0),
                 min(forecast_std / max(c.base_demand, 1.0), 2.0),
-                min((self._history[-1] if self._history else c.base_demand) / (2.0 * c.base_demand), 2.0),
+                min((self._history[-1] if self._history else c.base_demand) / demand_scale, 2.0),
                 min(time_fraction, 1.0),
             ],
             dtype=np.float32,
